@@ -17,6 +17,8 @@ struct value {
 		list *l;
 		dictionary *d;
 	} v;
+	size_t strlen;
+	int binary_string;
 };
 
 struct dictionary {

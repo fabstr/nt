@@ -298,6 +298,54 @@ int testDecodeList()
 	}
 	freeValue(list2Dec);
 
+
+	char *lststr3 = "l3:hej4:idag3:apae";
+	value *list3Dec = (value *) malloc(sizeof(value));
+	consumed = decode(lststr3, strlen(lststr3)+1, list3Dec);
+	if (consumed != 18) {
+		printf("consumed=%d expected 18\n", consumed);
+		passed = 0;
+	} else {
+		value strings[3];
+		strings[0].type = STRING; strings[0].v.s = "hej";
+		strings[1].type = STRING; strings[1].v.s = "idag";
+		strings[2].type = STRING; strings[2].v.s = "apa";
+		list *l = list3Dec -> v.l;
+		int i=0;
+		while (l != NULL) {
+			list *next = l -> next;
+			if (l -> v -> type != STRING) {
+				printf("wrong type: %d should be STRING\n", l -> v -> type);
+				passed = 0;
+			} else if (strcmp(strings[i].v.s, l -> v -> v.s) != 0) {
+				printf("wrong value: %s should be %s\n", l -> v -> v.s, strings[i].v.s);
+				passed = 0;
+			}
+			++i;
+			l = next;
+		}
+		if (i != 3) {
+			printf("wrong number of elements in list, %d should be 3\n", i);
+			passed = 0;
+		}
+	}
+	freeValue(list3Dec);
+	
+	char *lststr4 = "ld3:foo3:bar3:apa5:bananee";
+	value *list4Dec = (value *) malloc(sizeof(value));
+	fprintf(stderr, "FOOOOO\n");
+	consumed = decode(lststr4, strlen(lststr4)+1, list4Dec);
+	fprintf(stderr, "FOOOOO\n");
+	if (consumed != 26) {
+		printf("consumed=%d expected 26\n", consumed);
+		passed = 0;
+	} else {
+		printf("lista: ");
+		printValue(list4Dec);
+		printf("\n");
+	}
+	freeValue(list4Dec);
+
 	return passed;
 }
 
@@ -323,8 +371,7 @@ int testDecodeDictionary()
 	value v3 = {.type=LIST, .v.l = &l1};
 	dictionary d3 = {.key="cat", .next=NULL, .v=&v3};
 	dictionary d2 = {.key="bar", .next=&d3, .v=&v2};
-	dictionary d1 = {.key="foo", .next=&d2, .v=&v1};
-
+	dictionary d1 = {.key="foo", .next=&d2, .v=&v1}; 
 	value correctDict = {.type = DICTIONARY, .v.d = &d1};
 	if (!valueEqual(dictDec, &correctDict)) {
 		passed = 0;

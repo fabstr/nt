@@ -93,12 +93,22 @@ int decodeString(char *str, size_t strlen, value *v)
 	DEBUG("have offset=%d\n", offset);
 	DEBUG("apparent string to copy from: '%s'\n", str+offset);
 	int offsetBegin = offset;
-	for (int i=0; i<size && i<=strlen-offsetBegin; i++, offset++) {
+	int binary = 0;
+	int i;
+	for (i=0; i<size && i<=strlen-offsetBegin; i++, offset++) {
 		decodedString[i] = str[offset];
+		if (decodedString[i] < 8 || 
+				(decodedString[i] > 13 && 
+				 decodedString[i] < 32)) {
+			binary = 1;
+		}
 	}
 
+	decodedString[i] = '\0';
 	v -> type = STRING;
 	v -> v.s = decodedString;
+	v -> binary_string = binary;
+	v -> strlen = i;
 
 	DEBUG("decoded string: '%s' offset=%d\n", v->v.s, offset);
 	DEBUG("left after decoding: '%s'\n", str+offset);
@@ -133,6 +143,7 @@ int decodeList(char *str, size_t strlen, value *v)
 
 	int count = 0;
 	while (pos < strlen) {
+		++count;
 		l -> v = (value *) malloc(sizeof(value));
 		pos += decode(str+pos, strlen-pos, l -> v);
 
@@ -140,7 +151,6 @@ int decodeList(char *str, size_t strlen, value *v)
 			l -> next = NULL;
 			break;
 		} else {
-			count++;
 			list *next = (list *) malloc(sizeof(list));
 			l->next = next;
 			l = next;
@@ -192,6 +202,7 @@ int decodeDictionary(char *str, size_t strlen, value *v)
 		DEBUG("value consumed=%d pos=%d left='%s'\n", consumed, pos, str+pos);
 
 		if (str[pos] == 'e') {
+			d -> next = NULL;
 			break;
 		} else {
 			dictionary *next = (dictionary *) malloc(sizeof(dictionary));
@@ -236,7 +247,18 @@ void printValue(value *v)
 	} else if (v->type == INTEGER) {
 		printf("%ld", v->v.i);
 	} else if (v->type == STRING) {
-		printf("\"%s\"", v->v.s);
+		if (v -> binary_string == 1) {
+			printf("0x");
+			for (int i=0; i<v -> strlen; ++i) {
+				unsigned char c = v -> v.s[i];
+				if (c < 0xA) {
+					printf("0");
+				}
+				printf("%x", c);
+			}
+		} else {
+			printf("\"%s\"", v->v.s);
+		}
 	} else if (v->type == LIST) {
 		printf("[");
 		list *l = v -> v.l;
@@ -252,7 +274,7 @@ void printValue(value *v)
 		printf("{");
 		dictionary *d = v -> v.d;
 		while (d != NULL) {
-			printf("%s: ", d -> key);
+			printf("\"%s\": ", d -> key);
 			printValue(d->v);
 			if (d -> next != NULL) {
 				printf(", ");
@@ -260,8 +282,9 @@ void printValue(value *v)
 			d = d -> next;
 		}
 		printf("}");
-
-	} else printf("unknown type %d\n", v->type);
+	} else {
+		printf("unknown type %d\n", v->type);
+	}
 }
 
 void freeList(list *l)

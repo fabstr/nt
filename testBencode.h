@@ -7,7 +7,6 @@ int testDecodeString();
 int testDecodeInteger();
 int testDecodeList();
 int testDecodeDictionary();
-int testDecodeDictionary();
 int testValueEqual();
 
 int testDigitsRequired();
