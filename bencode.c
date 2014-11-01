@@ -13,8 +13,13 @@ int getDigitsRequiredInString(long int i)
 	}
 
 	long double log = log10(i);
-	log = ceil(log);
-	return (int) log;
+
+	double intpart, fracpart;
+	fracpart = modf(log, &intpart);
+
+	int answer = (int) intpart + 1;
+
+	return answer;
 }
 
 int encodeString(char *s, FILE *f)
@@ -85,8 +90,12 @@ int encode(value *v, FILE *f)
 int decodeString(char *str, size_t strlen, value *v)
 {
 	DEBUG("decoding string from '%s' (strlen=%ld)\n", str, strlen);
-	long int size;
-	sscanf(str, "%ld:", &size);
+	long int size=0;
+	int assigned = sscanf(str, "%ld:", &size);
+	if (assigned != 1) {
+		DEBUG("decodeString: didnt read size, assigned=%d\n", assigned);
+		return 0;
+	}
 
 	char *decodedString = (char *) malloc(size+1);
 	int offset = getDigitsRequiredInString(size)+1;
@@ -121,7 +130,12 @@ int decodeInteger(char *str, size_t strlen, value *v)
 	DEBUG("decoding integer from '%s'\n", str);
 	int consumed = 0;
 	long int i;
-	sscanf(str, "i%lde", &i);
+	int assigned = sscanf(str, "i%lde", &i);
+	if (assigned != 1) {
+		DEBUG("decodeInteger: didnt read size, assigned=%d\n", assigned);
+		return 0;
+	}
+
 	v -> type = INTEGER;
 	v -> v.i = i;
 
@@ -145,7 +159,14 @@ int decodeList(char *str, size_t strlen, value *v)
 	while (pos < strlen) {
 		++count;
 		l -> v = (value *) malloc(sizeof(value));
-		pos += decode(str+pos, strlen-pos, l -> v);
+		int consumed = decode(str+pos, strlen-pos, l -> v);
+		if (consumed == 0) {
+			DEBUG("decodeList: 0 was consumed\n");
+			l -> next = NULL;
+			return 0;
+		}
+
+		pos += consumed;
 
 		if (str[pos] == 'e') {
 			l -> next = NULL;
@@ -180,6 +201,12 @@ int decodeDictionary(char *str, size_t strlen, value *v)
 		// get the key
 		value* keyValue = (value *) malloc(sizeof(value));
 		int consumed = decodeString(str+pos, strlen-pos, keyValue);
+		if (consumed == 0) {
+			DEBUG("decodeDictionary: 0 was consumed whilst reading key\n");
+			d -> next = NULL;
+			return 0;
+		}
+
 		pos += consumed;
 		DEBUG("string decoded (%d consumed) pos=%d\n", consumed, pos);
 
@@ -197,6 +224,12 @@ int decodeDictionary(char *str, size_t strlen, value *v)
 		d -> key = keyString;
 		d -> v = (value *) malloc(sizeof(value));
 		consumed = decode(str+pos, strlen-pos, d -> v);
+		if (consumed == 0) {
+			DEBUG("decodeDictionary: 0 was consumed whilst reading value\n");
+			d -> next = NULL;
+			return 0;
+		}
+
 		pos += consumed;
 
 		DEBUG("value consumed=%d pos=%d left='%s'\n", consumed, pos, str+pos);

@@ -422,37 +422,56 @@ int testDigitsRequired()
 	int i3=123, c3=3;
 	int i4=1234, c4=4;
 	long int i11=61234567890, c11=11;
+	int i10 = 10, c10=2;
+	int i100 = 100, c100=3;
+	int i1000 = 1000, c1000=4;
 
 	int passed = 1;
+	int answer = -1;
 
-	if (getDigitsRequiredInString(i0) != c0) {
+	if ((answer = getDigitsRequiredInString(i0)) != c0) {
 		passed = 0;
-		printf("i0=%d should be %d\n", i0, c0);
+		printf("i0=%d should be %d (got %d)\n", i0, c0, answer);
 	}
 	
-	if (getDigitsRequiredInString(i1) != c1) {
+	if ((answer = getDigitsRequiredInString(i1)) != c1) {
 		passed = 0;
-		printf("i1=%d should be %d\n", i1, c1);
+		printf("i1=%d should be %d (got %d)\n", i1, c1, answer);
 	}
 	
-	if (getDigitsRequiredInString(i2) != c2) {
+	if ((answer = getDigitsRequiredInString(i2)) != c2) {
 		passed = 0;
-		printf("i2=%d should be %d\n", i2, c2);
+		printf("i2=%d should be %d (got %d)\n", i2, c2, answer);
 	}
 	
-	if (getDigitsRequiredInString(i3) != c3) {
+	if ((answer = getDigitsRequiredInString(i3)) != c3) {
 		passed = 0;
-		printf("i3=%d should be %d\n", i3, c3);
+		printf("i3=%d should be %d (got %d)\n", i3, c3, answer);
 	}
 	
-	if (getDigitsRequiredInString(i4) != c4) {
+	if ((answer = getDigitsRequiredInString(i4)) != c4) {
 		passed = 0;
-		printf("i4=%d should be %d\n", i4, c4);
+		printf("i4=%d should be %d (got %d)\n", i4, c4, answer);
 	}
 	
-	if (getDigitsRequiredInString(i11) != c11) {
+	if ((answer = getDigitsRequiredInString(i11)) != c11) {
 		passed = 0;
-		printf("i11=%ld should be %ld\n", i11, c11);
+		printf("i11=%ld should be %ld (got %d)\n", i11, c11, answer);
+	}
+
+	if ((answer = getDigitsRequiredInString(i10)) != c10) {
+		passed = 0;
+		printf("i10=%d should be %d (got %d)\n", i10, c10, answer);
+	}
+
+	if ((answer = getDigitsRequiredInString(i100)) != c100) {
+		passed = 0;
+		printf("i100=%d should be %d (got %d)\n", i100, c100, answer);
+	}
+
+	if ((answer = getDigitsRequiredInString(i1000)) != c1000) {
+		passed = 0;
+		printf("i1000=%d should be %d (got %d)\n", i1000, c1000, answer);
 	}
 
 	return passed;
