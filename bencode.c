@@ -12,10 +12,9 @@ int getDigitsRequiredInString(long int i)
 		return 1;
 	}
 
-	long double log = log10(i);
-
-	double intpart, fracpart;
-	fracpart = modf(log, &intpart);
+	double log = log10(i);
+	double intpart;
+	modf(log, &intpart);
 
 	int answer = (int) intpart + 1;
 
@@ -117,7 +116,7 @@ int decodeString(char *str, size_t strlen, value *v)
 	v -> type = STRING;
 	v -> v.s = decodedString;
 	v -> binary_string = binary;
-	v -> strlen = i;
+	v -> strlen = size;
 
 	DEBUG("decoded string: '%s' offset=%d\n", v->v.s, offset);
 	DEBUG("left after decoding: '%s'\n", str+offset);
@@ -281,14 +280,15 @@ void printValue(value *v)
 		printf("%ld", v->v.i);
 	} else if (v->type == STRING) {
 		if (v -> binary_string == 1) {
-			printf("0x");
+			printf("\"");
 			for (int i=0; i<v -> strlen; ++i) {
 				unsigned char c = v -> v.s[i];
-				if (c < 0xA) {
+				if (c <= 0xF) {
 					printf("0");
 				}
 				printf("%x", c);
 			}
+			printf("\"");
 		} else {
 			printf("\"%s\"", v->v.s);
 		}
