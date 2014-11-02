@@ -10,7 +10,7 @@ typedef struct dictionary dictionary;
 typedef struct value value;
 
 struct value {
-	enum {STRING, INTEGER, LIST, DICTIONARY} type;
+	enum {STRING=1, INTEGER, LIST, DICTIONARY} type;
 	union {
 		long int i;
 		char *s;
@@ -44,6 +44,12 @@ int decodeInteger(char *str, size_t strlen, value *v);
 int decodeList(char *str, size_t strlen, value *v);
 int decodeDictionary(char *str, size_t strlen, value *v);
 int decode(char *str, size_t strlen, value *v);
+
+value* dictionaryGetByKey(value *dictionary, char *key);
+
+unsigned char* calculateInfoHash(char *torrentfile);
+
+value* decodeFile(char *filename);
 
 void printValue(value *v);
 

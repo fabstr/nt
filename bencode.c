@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "bencode.h"
+#include "sha1.h"
 
 int getDigitsRequiredInString(long int i)
 {
@@ -273,9 +274,80 @@ int decode(char *str, size_t strlen, value *v)
 	}
 }
 
+value *dictionaryGetByKey(value *v, char *key)
+{
+	if (v == NULL || v -> type != DICTIONARY) {
+		return NULL;
+	}
+
+	dictionary *dict = v -> v.d;
+
+	while (dict != NULL) {
+		if (strcmp(key, dict -> key) == 0) {
+			return dict -> v;
+		}
+
+		dict = dict -> next;
+	}
+
+	return NULL;
+}
+
+unsigned char* calculateInfoHash(char *torrentfile)
+{
+	value* torrent = decodeFile(torrentfile);
+
+	value *infovalue = dictionaryGetByKey(torrent, "info");
+	if (infovalue == NULL) {
+		return NULL;
+	}
+
+	// get the bencode string 
+	char *buff;
+	size_t size;
+	FILE *f = open_memstream(&buff, &size);
+	encode(infovalue, f);
+	fclose(f);
+
+	unsigned char *hash = (unsigned char *) malloc(20);
+	sha1((const unsigned char *) buff, size, hash);
+
+	free(buff);
+
+	return hash;
+}
+
+value* decodeFile(char *filename)
+{
+	DEBUG("decoding file '%s'\n", filename);
+
+	FILE *f = fopen(filename, "rb");
+
+	fseek(f, 0, SEEK_END);
+	size_t len = ftell(f);
+	fseek(f, 0, SEEK_SET);
+
+	char *str = (char *) malloc(len+1);
+	fread(str, len, 1, f);
+	str[len] = '\0';
+
+	fclose(f);
+
+	value *v = (value *) malloc(sizeof(value));
+	int decoded = decode(str, len, v);
+	if (decoded == 0) {
+		DEBUG("decoded 0 in decodeFile\n");
+		free(str);
+		return NULL;
+	}
+	free(str);
+	return v;
+}
+
 void printValue(value *v)
 {
-	if (v == NULL) {printf("NULL");
+	if (v == NULL) {
+		printf("NULL");
 	} else if (v->type == INTEGER) {
 		printf("%ld", v->v.i);
 	} else if (v->type == STRING) {
@@ -316,7 +388,7 @@ void printValue(value *v)
 		}
 		printf("}");
 	} else {
-		printf("unknown type %d\n", v->type);
+		printf("unknown type %d", v->type);
 	}
 }
 

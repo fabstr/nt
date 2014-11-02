@@ -8,6 +8,7 @@ int testDecodeInteger();
 int testDecodeList();
 int testDecodeDictionary();
 int testValueEqual();
+int testCalculateInfoHash();
 
 int testDigitsRequired();
 int testBencodeDecoding();

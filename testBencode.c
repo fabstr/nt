@@ -333,16 +333,26 @@ int testDecodeList()
 	
 	char *lststr4 = "ld3:foo3:bar3:apa5:bananee";
 	value *list4Dec = (value *) malloc(sizeof(value));
-	fprintf(stderr, "FOOOOO\n");
 	consumed = decode(lststr4, strlen(lststr4)+1, list4Dec);
-	fprintf(stderr, "FOOOOO\n");
 	if (consumed != 26) {
 		printf("consumed=%d expected 26\n", consumed);
 		passed = 0;
 	} else {
-		printf("lista: ");
-		printValue(list4Dec);
-		printf("\n");
+		list *l = list4Dec -> v.l;
+		dictionary *d = l -> v -> v.d;
+		if (strcmp("foo", d -> key) != 0 || strcmp("bar", d -> v -> v.s)) {
+			passed = 0;
+		}
+
+		d = d -> next;
+		if (d == NULL || strcmp("apa", d -> key) != 0 || strcmp("banan", d -> v -> v.s)) {
+			passed = 0;
+		}
+
+		d = d -> next;
+		if (d != NULL) {
+			passed = 0;
+		}
 	}
 	freeValue(list4Dec);
 
@@ -578,6 +588,37 @@ int testValueEqual()
 	return passed;
 }
 
+int testCalculateInfoHash()
+{
+	printf("Testing info hash of gpio.torrent");
+	int passed = 1;
+
+	unsigned char *hash = calculateInfoHash("gpio.torrent");
+	if (hash == NULL) {
+		printf("hash is null\n");
+		return 0;
+	} else {
+		unsigned char answer[20] = {
+			0x7d, 0x6f, 0x70, 0x9d, 0x5f, 
+			0x17, 0x3a, 0x20, 0x2c, 0x56, 
+			0xff, 0x00, 0xc5, 0xaa, 0xbc, 
+			0x8d, 0x80, 0xce, 0xc3, 0x0f
+		};
+		for (int i=0; i<20; ++i) {
+			if (hash[i] != answer[i]) {
+				passed = 0;
+				printf("%d ", i);
+			}
+		}
+	}
+
+	if (passed == 0) {
+		printf("CalculateInfoHash FALIED\n");
+	}
+
+	return passed;
+}
+
 int main() 
 {
 	int passed = 1;
@@ -591,6 +632,9 @@ int main()
 
 	printf("\n\nVALUEEQUAL:\n");
 	if (testValueEqual() == 0) passed = 0;
+
+	printf("\n\nINFOHASH:\n");
+	if (testCalculateInfoHash() == 0) passed = 0;
 	
 	printf("\n");
 
