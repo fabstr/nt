@@ -70,5 +70,4 @@ trackerResponse* newResponse();
 void freeRequest(trackerRequest *t);
 void freeResponse(trackerResponse *t);
 
-
 #endif // TRACKER_H
