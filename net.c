@@ -14,28 +14,31 @@ void* getInAddr(struct sockaddr *sa)
 	return &(((struct sockaddr_in6 *) sa) -> sin6_addr);
 }
 
-int main()
+void setAddrinfoHints(struct addrinfo *hints)
 {
-	int sockfd;
-	struct addrinfo hints, *servinfo, *p;
-	struct sockaddr_storage their_addr;
-	socklen_t sin_size;
-	struct sigaction sa;
-	int yes = 1;
-	char s[INET6_ADDRSTRLEN];
-	int rv;
+	memset(hints, 0, sizeof(struct addrinfo));
+	hints -> ai_family = AF_UNSPEC;
+	hints -> ai_socktype = SOCK_STREAM;
+	hints -> ai_flags = AI_PASSIVE;
+}
 
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;
+int bindTo(char *host, char *port)
+{
+	struct addrinfo hints;
+	struct addrinfo *servinfo;
+	struct addrinfo *p;
 
-	if ((rv = getaddrinfo("0.0.0.0", "1234", &hints, &servinfo)) != 0) {
+	setAddrinfoHints(&hints);
+
+	int rv = getaddrinfo(host, port, &hints, &servinfo);
+	if (rv != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-		return 1;
+		return -1;
 	}
 
-	for (p = servinfo; p != NULL; p=p->ai_next) {
+	int sockfd;
+	int yes = 1;
+	for (p = servinfo; p != NULL; p = p -> ai_next) {
 		sockfd = socket(p -> ai_family, p -> ai_socktype, p -> ai_protocol);
 		if (sockfd == -1) {
 			perror("server: socket");
@@ -54,50 +57,70 @@ int main()
 		}
 
 		break;
-	}
 
-	if (p == NULL) {
-		fprintf(stderr, "server: failed to bind\n");
-		return 2;
 	}
 
 	freeaddrinfo(servinfo);
 
-	if (listen(sockfd, BACKLOG) == -1) {
-		perror("listen");
-		exit(1);
+	if (p == NULL) {
+		fprintf(stderr, "server: failed to bind\n");
+		return -1;
 	}
 
-	sa.sa_handler = sigchld_handler;
-	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = SA_RESTART;
-	if (sigaction(SIGCHLD, &sa, NULL) == -1) {
-		perror("sigaction");
-		exit(1);
-	}
-
-	printf("server: waiting for connections...\n");
-
-	while (1) {
-		sin_size = sizeof(their_addr);
-		int new_fd = accept(sockfd, (struct sockaddr *) &their_addr, &sin_size);
-		if (new_fd == -1) {
-			perror("accept");
-			continue;
-		}
-
-		inet_ntop(their_addr.ss_family, getInAddr((struct sockaddr *) &their_addr), s, sizeof(s));
-		printf("server: got connection from %s\n", s);
-
-		if (!fork()) {
-			// child
-			close(sockfd);
-			if (send(new_fd, "Hello, world!\n", 14, 0) == -1) {
-				perror("send");
-			}
-			close(new_fd);
-			exit(0);
-		}
-		close(new_fd);
-	}
+	return sockfd;
 }
+
+// bind and listen, return the socket
+int openListenSocket(char *host, char *port)
+{
+	int sock = bindTo(host, port);
+	if (listen(sock, BACKLOG) == -1) {
+		close(sock);
+		return -1;
+	}
+
+	return sock;
+}
+
+/*int main()*/
+/*{*/
+	/*struct sockaddr_storage their_addr;*/
+	/*socklen_t sin_size;*/
+	/*struct sigaction sa;*/
+	/*char s[INET6_ADDRSTRLEN];*/
+
+	/*int sockfd = openListenSocket("192.168.1.20", "1234");*/
+
+	/*sa.sa_handler = sigchld_handler;*/
+	/*sigemptyset(&sa.sa_mask);*/
+	/*sa.sa_flags = SA_RESTART;*/
+	/*if (sigaction(SIGCHLD, &sa, NULL) == -1) {*/
+		/*perror("sigaction");*/
+		/*exit(1);*/
+	/*}*/
+
+	/*printf("server: waiting for connections...\n");*/
+
+	/*while (1) {*/
+		/*sin_size = sizeof(their_addr);*/
+		/*int new_fd = accept(sockfd, (struct sockaddr *) &their_addr, &sin_size);*/
+		/*if (new_fd == -1) {*/
+			/*perror("accept");*/
+			/*continue;*/
+		/*}*/
+
+		/*inet_ntop(their_addr.ss_family, getInAddr((struct sockaddr *) &their_addr), s, sizeof(s));*/
+		/*printf("server: got connection from %s\n", s);*/
+
+		/*if (!fork()) {*/
+			/*// child*/
+			/*close(sockfd);*/
+			/*if (send(new_fd, "Hello, world!\n", 14, 0) == -1) {*/
+				/*perror("send");*/
+			/*}*/
+			/*close(new_fd);*/
+			/*exit(0);*/
+		/*}*/
+		/*close(new_fd);*/
+	/*}*/
+/*}*/
