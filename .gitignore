@@ -1,0 +1,8 @@
+*.o
+viewTorrent 
+tracker 
+testBencode 
+viewTorrent 
+net 
+testSHA1 
+torrent
