@@ -82,6 +82,60 @@ int openListenSocket(char *host, char *port)
 	return sock;
 }
 
+int connectTo(char *host, char *port)
+{
+	int sockfd;
+
+	struct addrinfo hints;
+	struct addrinfo *servinfo;
+	struct addrinfo *p;
+	int rv;
+	
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+
+	rv = getaddrinfo(host, port, &hints, &servinfo);
+	if (rv != 0) {
+		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+		return -1;
+	}
+
+	for (p = servinfo; p != NULL; p = p -> ai_next) {
+		sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+		if (sockfd == -1) {
+			perror("client: socket");
+			continue;
+		}
+
+		rv = connect(sockfd, p->ai_addr, p->ai_addrlen);
+		if (rv == -1) {
+			close(sockfd);
+			perror("client: connect");
+			continue;
+		}
+
+		break;
+	}
+
+	if (p == NULL) {
+		fprintf(stderr, "client: failed to connect\n");
+		return -1;
+	}
+
+	freeaddrinfo(servinfo);
+	return sockfd;
+}
+
+// connect example
+/*int main()*/
+/*{*/
+	/*int sock = connectTo("192.168.1.30", "1234");*/
+	/*send(sock, "hello\n", 6, 0);*/
+	/*close(sock);*/
+/*}*/
+
+// listen sample
 /*int main()*/
 /*{*/
 	/*struct sockaddr_storage their_addr;*/

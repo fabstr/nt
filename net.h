@@ -21,6 +21,8 @@ void sigchld_handler(int s);
 void* getInAddr(struct sockaddr *sa);
 void setAddrinfoHints(struct addrinfo *hints);
 int bindTo(char *host, char *port);
+int openListenSocket(char *host, char *port);
+int connectTo(char *host, char *port);
 
 
 #endif // NET_H
