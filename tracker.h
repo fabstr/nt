@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <netinet/in.h>
 #include "bencode.h"
+#include "peer.h"
 
 typedef struct tracker tracker;
 struct tracker {
@@ -19,12 +20,6 @@ struct tracker {
 
 enum trackerEvent {
 	UNSPECIFIED, STARTED, STOPPED, COMPLETED
-};
-
-typedef struct peer peer;
-struct peer {
-	uint32_t ip;
-	unsigned short int port;
 };
 
 typedef struct trackerRequest trackerRequest;
