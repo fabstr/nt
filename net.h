@@ -14,7 +14,6 @@
 #include <signal.h>
 #include <string.h>
 
-#define PORT "1234"
 #define BACKLOG 10
 
 void sigchld_handler(int s);
