@@ -44,3 +44,6 @@ clean:
 test: clean testBencode
 	valgrind ${VALGRINDFLAGS} ./testBencode
 	grep lost valgrind.log
+
+wc:
+	ls -l | grep -v -e sha1 | awk '{print $5}' | sum
