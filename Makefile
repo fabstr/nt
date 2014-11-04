@@ -46,4 +46,4 @@ test: clean testBencode
 	grep lost valgrind.log
 
 wc:
-	ls -l | grep -v -e sha1 | awk '{print $5}' | sum
+	wc -l *.c *.h | grep -v -e sha1 | grep total
