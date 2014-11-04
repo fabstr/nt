@@ -55,6 +55,18 @@ peer* connectToPeer(char *host, char *port);
 void closePeer(peer *p); // close the socket 
 void freePeer(peer *p); // free the messages and p
 
-int handshake(peer *peer, char *infohash);
+int sendHandshake(peer *peer, char *infohash, char *peerid);
+int sendMessageToPeer(peer *p, message *m);
+
+message *recieveMessageFromPeer(peer *p);
+
+void parseBitfield(message *m, unsigned char **bytes, size_t *nbytes);
+void parseRequest(message *m, uint32_t *pieceIndex, uint32_t *offset, 
+		uint32_t *length);
+void parsePiece(message *m, uint32_t *pieceIndex, uint32_t *offset, 
+		unsigned char **block, size_t *length);
+void parseCancel(message *m, uint32_t *pieceIndex, uint32_t *offset, 
+		uint32_t *length);
+void parsePort(message *m, uint16_t *port);
 
 #endif // PEER_H
