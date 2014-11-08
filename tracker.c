@@ -236,8 +236,20 @@ trackerResponse* parseResponse(value *response)
 				ip = ntohl(ip);
 				port = ntohs(port);
 
-				p -> ip = ip;
-				p -> port = port;
+				size_t ipsize, portsize;
+
+				FILE *ipStr = open_memstream(&(p -> host), &ipsize);
+				unsigned char bytes[4];
+				bytes[0] = ip & 0xFF;
+				bytes[1] = (ip >> 8) & 0xFF;
+				bytes[2] = (ip >> 16) & 0xFF;
+				bytes[3] = (ip >> 24) & 0xFF;	
+				fprintf(ipStr, "%d.%d.%d.%d\n", bytes[3], bytes[2], bytes[1], bytes[0]);
+				fclose(ipStr);
+
+				FILE *portStr = open_memstream(&(p -> host), &portsize);
+				fprintf(portStr, "%d", port);
+				fclose(portStr);
 			}
 		} else if (v -> type == LIST) {
 			// steal the dictionary to avoid it beeing free()'d
@@ -249,7 +261,7 @@ trackerResponse* parseResponse(value *response)
 	return tresp;
 }
 
-trackerRequest* newRequest()
+trackerRequest* newTrackerRequest()
 {
 	trackerRequest *t = (trackerRequest *) malloc(sizeof(trackerRequest));
 	if (t == NULL) {
