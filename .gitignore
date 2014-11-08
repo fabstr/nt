@@ -6,3 +6,4 @@ viewTorrent
 net 
 testSHA1 
 torrent
+*.core
