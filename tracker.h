@@ -60,7 +60,7 @@ void closeTracker(tracker *t);
 char *trackerRequestToGetString(trackerRequest *req);
 trackerResponse* sendRequest(tracker *tracker, trackerRequest *request);
 trackerResponse* parseResponse(value *response);
-trackerRequest *newRequest();
+trackerRequest *newTrackerRequest();
 trackerResponse* newResponse();
 void freeRequest(trackerRequest *t);
 void freeResponse(trackerResponse *t);
