@@ -313,6 +313,7 @@ unsigned char* calculateInfoHash(char *torrentfile)
 	sha1((const unsigned char *) buff, size, hash);
 
 	free(buff);
+	freeValue(torrent);
 
 	return hash;
 }
