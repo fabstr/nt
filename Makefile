@@ -1,5 +1,5 @@
 SOURCES= bencode.c curltest.c net.c sha1.c testBencode.c testSHA1.c tracker.c \
-	 viewTorrent.c bitfield.o
+	 viewTorrent.c bitfield.o message.c
 OBJECTS=${SOURCES:.c=.o}
 BINS= viewTorrent tracker testBencode viewTorrent net testSHA1 torrent
 
@@ -8,12 +8,12 @@ CFLAGS=-Wall -g -I/usr/local/include
 CLIBS=-lm -L/usr/local/lib -lcurl 
 VALGRINDFLAGS=--leak-check=full --log-file=valgrind.log
 
-all: torrent
+all: torrent viewTorrent
 
 # binaries
-torrent: torrent.o tracker.o bencode.o net.o sha1.o bitfield.o
+torrent: torrent.o tracker.o bencode.o net.o sha1.o bitfield.o message.o
 	${CC} ${CFLAGS} ${CLIBS} -o torrent torrent.o tracker.o bencode.o\
-		net.o sha1.o
+		net.o sha1.o message.o
 
 tracker: tracker.o bencode.o sha1.o
 	${CC} ${CFLAGS} ${CLIBS} -o tracker tracker.o bencode.o sha1.o
@@ -42,7 +42,7 @@ net: net.o
 
 # various stuff
 clean: 
-	rm -f *.o *.core ${BINS} valgrind.log*
+	rm -f ${OBJECTS} *.core ${BINS} valgrind.log*
 
 test: clean testBencode
 	valgrind ${VALGRINDFLAGS} ./testBencode
