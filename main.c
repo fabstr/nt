@@ -5,7 +5,7 @@
 int main(int argc, char **argv)
 {
 	if (argc < 2) {
-		printf("nt metainfo-file ...\n");
+		printf("nt torrent-file [torrent-file ...]\n");
 		return 1;
 	}
 
