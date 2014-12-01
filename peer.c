@@ -160,7 +160,7 @@ handshake* recieveHandshake(peer *peer)
 	int success = 1;
 	if (4 != recv(peer -> sockfd, &strlen, 4, 0)) {
 		success = 0;
-	} else if (19 != recv(peer -> sockfd, &str, 19, 0)) {
+	} if (19 != recv(peer -> sockfd, &str, 19, 0)) {
 		success = 0;
 	} else if (8 != recv(peer -> sockfd, hs -> zeros, 8, 0)) {
 		success = 0;
