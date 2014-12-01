@@ -33,7 +33,11 @@ peer* connectToPeer(char *host, char *port);
 void closePeer(peer *p); // close the socket 
 void freePeer(peer *p); // free the messages and p
 
+// send a handshake with our infohash and our peerid to the socked given by
+// peer -> sockfd
 int sendHandshake(peer *peer, char *infohash, char *peerid);
+
+// recieve a handshake from the connection given by peer->sockfd
 handshake* recieveHandshake(peer *peer);
 
 int sendMessageToPeer(peer *p, message *m);
