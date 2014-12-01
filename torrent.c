@@ -37,6 +37,10 @@ torrent* newTorrent(char *filename)
 	t -> trackers = NULL;
 	t -> peers = NULL;
 
+	t -> npeers = 0;
+	t -> peersSize = 30;
+	t -> peers = (peer *) malloc(t->peersSize * sizeof(peer));
+
 	t -> trackersMutex = (pthread_mutex_t *) malloc(sizeof(pthread_mutex_t));
 	t -> peersMutex = (pthread_mutex_t *) malloc(sizeof(pthread_mutex_t));
 
@@ -87,6 +91,7 @@ void* inboundLoop(void *data)
 	printf("Waiting for connections...\n");
 	while (looping) {
 		newfd = accept(t->sockfd, &addr, &addrsize);
+
 		if (newfd != -1) {
 			handleIncomingConnection(newfd, addr, t);
 		}
@@ -98,7 +103,7 @@ void* inboundLoop(void *data)
 // connect to peers and add them to the peer queue
 void* outboundLoop(void *data)
 {
-	// torrent *t = (torrent *) data;
+	/*torrent *t = (torrent *) data;*/
 	printf("This is outbound loop talking!\n");
 	return NULL;
 }
@@ -107,7 +112,6 @@ void* outboundLoop(void *data)
 void handleIncomingConnection(int sock, struct sockaddr addr, torrent *t)
 {
 	printf("Handling connection from %d\n", sock);
-	close(sock);
 
 	// create the peer object
 	peer *p = (peer *) malloc(sizeof(peer));
@@ -116,9 +120,67 @@ void handleIncomingConnection(int sock, struct sockaddr addr, torrent *t)
 	p -> sockfd = sock;
 
 	// wait for the handshake 
+	handshake *hs = recieveHandshake(p);
+
 	// check the info hash
-	// send our own handshake
+	if (strncmp((char *) hs -> infohash, (char *) t -> infohash, 20) != 0) {
+		// the info hash does not match, close the connection 
+		close(sock);
+	} else {
+		// send our own handshake
+		int result = sendHandshake(p, (char *) t -> infohash, (char *) t -> peerid);
+		if (result > 0) {
+			addPeer(t, p);
+		}
+	}
+
+	// TODO what to do with hs -> peerid?
+	free(p);
+	free(hs->infohash);
+	free(hs->peerid);
+	free(hs->zeros);
+	free(hs);
+}
+
+void addPeer(torrent *t, peer *p)
+{
 	// lock the peer mutex and add this peer to the array
 	pthread_mutex_lock(t -> peersMutex);
+
+	if (t -> npeers == t -> peersSize) {
+		// need to increase the peers array
+		t -> peers = realloc(t->peers, t->peersSize*2);
+		if (t -> peers == NULL) {
+			// we have a problem
+			// TODO
+			pthread_mutex_unlock(t -> peersMutex);
+			return;
+		}
+	}
+
+	// get the current peer to write to
+	peer *pp = &(t -> peers[t -> npeers]);
+
+	// increase the number of peers we have
+	t -> npeers += 1;
+
+	// set host/port to null since we are already connected
+	pp -> host = NULL;
+	pp -> port = NULL;
+
+	// copy the socket
+	pp -> sockfd = p -> sockfd;
+
+	// allocate memory for 0 messages
+	pp -> nmessages = 0;
+	pp -> messageQueue = (message *) malloc(pp->nmessages * sizeof(message));
+
+	// set the connection to choking and not interested
+	pp -> am_choking = 1;
+	pp -> am_interested = 0;
+	pp -> peer_choking = 1;
+	pp -> peer_interested = 0;
+
+	// we're done, unlock the mutex
 	pthread_mutex_unlock(t -> peersMutex);
 }
