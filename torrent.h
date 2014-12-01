@@ -21,8 +21,10 @@ struct torrent {
 	tracker *trackers;
 	pthread_mutex_t *trackersMutex;
 
-	// the peers given by the tracker
+	// the peers given by the tracker; peersMutex must be locked before
+	// doint anything with this array
 	size_t npeers;
+	size_t peersSize;
 	peer *peers;
 	pthread_mutex_t *peersMutex;
 
@@ -49,6 +51,7 @@ void* handleTorrent(void *filename);
 void *outboundLoop(void *data);
 void *inboundLoop(void *data);
 void handleIncomingConnection(int sock, struct sockaddr addr, torrent *t);
+void addPeer(torrent *t, peer *p);
 
 
 #endif // TORRENT_H
