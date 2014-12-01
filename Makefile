@@ -11,9 +11,10 @@ VALGRINDFLAGS=--leak-check=full --log-file=valgrind.log
 all: torrent viewTorrent
 
 # binaries
-torrent: torrent.o tracker.o bencode.o net.o sha1.o bitfield.o message.o main.o
+torrent: torrent.o tracker.o bencode.o net.o sha1.o bitfield.o message.o main.o \
+	peer.o
 	${CC} ${CFLAGS} ${CLIBS} -o torrent torrent.o tracker.o bencode.o\
-		net.o sha1.o message.o main.o
+		net.o sha1.o message.o main.o peer.o
 
 tracker: tracker.o bencode.o sha1.o
 	${CC} ${CFLAGS} ${CLIBS} -o tracker tracker.o bencode.o sha1.o
