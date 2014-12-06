@@ -49,10 +49,13 @@ tracker* openTracker(char *url)
 void closeTracker(tracker *t)
 {
 	curl_easy_cleanup(t -> curlhandle);
-
 	free(t -> url);
 	free(t -> buff);
+}
 
+void freeTracker(tracker *t)
+{
+	closeTracker(t);
 	free(t);
 }
 
@@ -330,43 +333,46 @@ void freeResponse(trackerResponse *t)
 	free(t);
 }
 
-/*int main()*/
-/*{*/
-	/*curl_global_init(CURL_GLOBAL_ALL);*/
+#ifdef TRACKERTEST
+int main()
+{
+	curl_global_init(CURL_GLOBAL_ALL);
 
-	/*tracker *t = openTracker("http://www.lan.tallr.se/tracker/index.php");*/
-	/*trackerRequest *tr = newRequest();*/
-	/*unsigned char hash[21] = {0x7d, 0x6f, 0x70, 0x9d, 0x5f, 0x17, 0x3a, 0x20, 0x2c, 0x56, 0xff, 0x00, 0xc5, 0xaa, 0xbc, 0x8d, 0x80, 0xce, 0xc3, 0x0f, 0x0};*/
-	/*tr -> info_hash = hash;*/
-	/*tr -> peer_id = (unsigned char *) "123456789abcdefqwer";*/
-	/*tr -> port = 1234;*/
-	/*tr -> uploaded = 0;*/
-	/*tr -> downloaded = 0;*/
-	/*tr -> left = 12345;*/
-	/*tr -> compact = 1;*/
-	/*tr -> no_peer_id = 1;*/
-	/*tr -> event = STARTED;*/
-	/*tr -> ip = "192.168.1.20";*/
-	/*tr -> numwant = 20;*/
-	/*tr -> key = "asdf";*/
-	/*tr -> tracker_id = "dfgblk";*/
-	/*trackerResponse *resp = sendRequest(t, tr);*/
-	/*if (resp == NULL) {*/
-		/*printf("resp is null\n");*/
-	/*} else {*/
-		/*if (resp -> n_peers == 0 && resp -> peers_list != NULL) {*/
-			/*printf("Peers: ");*/
-			/*value v = {.type=LIST, .v.l = resp -> peers_list};*/
-			/*printValue(&v);*/
-			/*printf("\n");*/
-		/*}*/
-	/*}*/
+	tracker *t = openTracker("http://www.lan.tallr.se/tracker/index.php");
+	trackerRequest *tr = newTrackerRequest();
+	unsigned char hash[21] = {0x7d, 0x6f, 0x70, 0x9d, 0x5f, 0x17, 0x3a, 0x20, 0x2c, 0x56, 0xff, 0x00, 0xc5, 0xaa, 0xbc, 0x8d, 0x80, 0xce, 0xc3, 0x0f, 0x0};
+	tr -> info_hash = hash;
+	tr -> peer_id = (unsigned char *) "123456789abcdefqwer";
+	tr -> port = 1234;
+	tr -> uploaded = 0;
+	tr -> downloaded = 0;
+	tr -> left = 12345;
+	tr -> compact = 1;
+	tr -> no_peer_id = 1;
+	tr -> event = STARTED;
+	tr -> ip = "192.168.1.20";
+	tr -> numwant = 20;
+	tr -> key = "asdf";
+	tr -> tracker_id = "dfgblk";
+	trackerResponse *resp = sendRequest(t, tr);
+	if (resp == NULL) {
+		printf("resp is null\n");
+	} else {
+		if (resp -> n_peers == 0 && resp -> peers_list != NULL) {
+			printf("Peers: ");
+			value v = {.type=LIST, .v.l = resp -> peers_list};
+			printValue(&v);
+			printf("\n");
+		}
+
+		freeResponse(resp);
+		free(tr);
+		freeTracker(t);
+	}
 
 
 
-	/*freeResponse(resp);*/
-	/*free(tr);*/
-	/*closeTracker(t);*/
 
-	/*curl_global_cleanup();*/
-/*}*/
+	curl_global_cleanup();
+}
+#endif // TRACKERTEST
