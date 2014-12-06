@@ -46,12 +46,13 @@ struct torrent {
 
 void printInfoHash(unsigned char *infohash);
 void freeTorrent(torrent *t);
+void setTrackers(tracker *trackers, size_t count, value *metainfo);
+size_t countAnnounce(value *metainfo);
 torrent* newTorrent(char *filename);
 void* handleTorrent(void *filename);
 void *outboundLoop(void *data);
 void *inboundLoop(void *data);
 void handleIncomingConnection(int sock, struct sockaddr addr, torrent *t);
 void addPeer(torrent *t, peer *p);
-
 
 #endif // TORRENT_H

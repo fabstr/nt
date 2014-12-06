@@ -5,7 +5,15 @@ void freeTorrent(torrent *t)
 	pthread_mutex_destroy(t -> trackersMutex);
 	pthread_mutex_destroy(t -> peersMutex);
 
-	if (t -> trackers != NULL) free(t -> trackers);
+	if (t -> trackers != NULL) {
+		for (size_t i=0; i<t -> ntrackers; ++i) {
+			tracker *tr = &(t -> trackers[i]);
+			closeTracker(tr);
+		}
+
+		free(t -> trackers);
+	}
+
 	if (t -> peers != NULL) free(t -> peers);
 	if (t -> peerid != NULL) free(t -> peerid);
 	if (t -> infohash != NULL) free(t -> infohash);
@@ -24,6 +32,73 @@ void printInfoHash(unsigned char *infohash)
 	}
 }
 
+size_t countAnnounce(value *metainfo)
+{
+	value *announce = dictionaryGetByKey(metainfo, "announce");
+	char *announceStr = announce -> v.s;
+
+	value *announceList = dictionaryGetByKey(metainfo, "announce-list");
+
+	size_t count = 1;
+	if (announceList != NULL) {
+		list *l = announceList -> v.l;
+		while (l != NULL) {
+			char *str = l -> v -> v.s;
+
+			if (strcmp(announceStr, str) != 0) {
+				count++;
+			}
+
+			l = l -> next;
+		}
+	}
+
+	freeValue(announce);
+	freeValue(announceList);
+
+	return count;
+}
+
+void setTrackers(tracker *trackers, size_t count, value *metainfo)
+{
+	if (count < 1) return;
+
+	size_t pos = 0;
+
+	value *announce = dictionaryGetByKey(metainfo, "announce");
+	char *announceStr = announce -> v.s;
+
+	tracker *t = openTracker(announceStr);
+	trackers[pos].url = t -> url;
+	trackers[pos].curlhandle = t -> curlhandle;
+	trackers[pos].buff = t -> buff;
+	trackers[pos].buffsize = t -> buffsize;
+	pos++;
+
+	value *announceList = dictionaryGetByKey(metainfo, "announce-list");
+
+	if (announceList != NULL) {
+		list *l = announceList -> v.l;
+		while (l != NULL && pos < count) {
+			char *str = l -> v -> v.s;
+
+			if (strcmp(announceStr, str) != 0) {
+				tracker *t = openTracker(announceStr);
+				trackers[pos].url = t -> url;
+				trackers[pos].curlhandle = t -> curlhandle;
+				trackers[pos].buff = t -> buff;
+				trackers[pos].buffsize = t -> buffsize;
+				pos++;
+			}
+
+			l = l -> next;
+		}
+	}
+
+	freeValue(announce);
+	freeValue(announceList);
+}
+
 torrent* newTorrent(char *filename)
 {
 	// get the metainfo
@@ -33,8 +108,11 @@ torrent* newTorrent(char *filename)
 	// get the info hash
 	t -> infohash = calculateInfoHash(filename);
 
+	t -> ntrackers = countAnnounce(t -> metainfo);
+	t -> trackers = (tracker *) malloc(t -> ntrackers * sizeof(tracker));
+	setTrackers(t -> trackers, t -> ntrackers, t -> metainfo);
+
 	t -> peerid = NULL;
-	t -> trackers = NULL;
 	t -> peers = NULL;
 
 	t -> npeers = 0;
@@ -88,7 +166,11 @@ void* inboundLoop(void *data)
 	struct sockaddr addr;
 	socklen_t addrsize = sizeof(struct sockaddr);
 	int looping = 1;
-	printf("Waiting for connections...\n");
+
+	printf("in:  ");
+	printInfoHash(t -> infohash);
+	printf("\n");
+
 	while (looping) {
 		newfd = accept(t->sockfd, &addr, &addrsize);
 
@@ -103,8 +185,17 @@ void* inboundLoop(void *data)
 // connect to peers and add them to the peer queue
 void* outboundLoop(void *data)
 {
-	/*torrent *t = (torrent *) data;*/
-	printf("This is outbound loop talking!\n");
+	torrent *t = (torrent *) data;
+
+	printf("out: ");
+	printInfoHash(t -> infohash);
+	printf("\n");
+
+	printf("Trackers (%ld):\n", t -> ntrackers);
+	for (int i=0; i<t->ntrackers; ++i) {
+		printf("%s\n", t -> trackers[i].url);
+	}
+
 	return NULL;
 }
 
