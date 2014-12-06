@@ -25,6 +25,9 @@ testBencode: bencode.o testBencode.o sha1.o
 testBitfield: bitfield.o testBitfield.o
 	${CC} ${CFLAGS} ${CLIBS} -o testBitfield bitfield.o testBitfield.o
 
+testTracker: tracker.o bencode.o sha1.o
+	${CC} ${CFLAGS} ${CLIBS} -D TRACKERTEST -o tracker tracker.c bencode.o sha1.o
+
 sha1: sha1.o testSHA1.o
 	${CC} ${CFLAGS} ${CLIBS} -o testSHA1 $?
 
