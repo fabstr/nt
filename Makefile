@@ -53,4 +53,4 @@ test: clean testBencode
 	grep lost valgrind.log
 
 wc:
-	wc -l *.c *.h | grep -v -e sha1 | grep total
+	wc -l *.c *.h  | grep total | awk '{printf "%8d total\n", $$1 - 595}'
