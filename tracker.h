@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <netinet/in.h>
 #include "bencode.h"
+#include "torrent.h"
 #include "peer.h"
 
 typedef struct tracker tracker;
@@ -64,5 +65,6 @@ trackerRequest *newTrackerRequest();
 trackerResponse* newResponse();
 void freeRequest(trackerRequest *t);
 void freeResponse(trackerResponse *t);
+//peer *askTrackerForPeers(tracker *tr, torrent *t);
 
 #endif // TRACKER_H

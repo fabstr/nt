@@ -1,5 +1,6 @@
 #include <pthread.h>
 #include <stdio.h>
+#include <curl/curl.h>
 #include "torrent.h"
 
 int main(int argc, char **argv)
@@ -8,6 +9,8 @@ int main(int argc, char **argv)
 		printf("nt torrent-file [torrent-file ...]\n");
 		return 1;
 	}
+
+	curl_global_init(CURL_GLOBAL_ALL);
 
 	size_t nfiles = argc-1;
 	pthread_t threads[nfiles];
@@ -32,4 +35,6 @@ int main(int argc, char **argv)
 	for (size_t i=0; i<nfiles; ++i) {
 		pthread_join(threads[i], NULL);
 	}
+
+	curl_global_cleanup();
 }

@@ -196,6 +196,16 @@ void* outboundLoop(void *data)
 		printf("%s\n", t -> trackers[i].url);
 	}
 
+	int looping = 1;
+	while (looping) {
+		for (size_t i=0; i<t -> ntrackers; ++i) {
+			tracker *tr = &(t -> trackers[i]);
+			peer *p = askTrackerForPeers(tr, t);
+			mergePeers(t, p);
+		}
+		looping = 0;
+	}
+
 	return NULL;
 }
 

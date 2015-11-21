@@ -333,6 +333,10 @@ void freeResponse(trackerResponse *t)
 	free(t);
 }
 
+peer *askTrackerForPeers(tracker *t, torrent *t)
+{
+}
+
 #ifdef TRACKERTEST
 int main()
 {
@@ -369,9 +373,6 @@ int main()
 		free(tr);
 		freeTracker(t);
 	}
-
-
-
 
 	curl_global_cleanup();
 }
